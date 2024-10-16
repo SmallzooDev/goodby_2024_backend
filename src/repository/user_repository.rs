@@ -2,7 +2,7 @@ use crate::config::database::{Database, DatabaseTrait};
 use crate::entity::user::User;
 use async_trait::async_trait;
 use sqlx;
-use sqlx::Error;
+use sqlx::{Error, Postgres};
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -13,8 +13,8 @@ pub struct UserRepository {
 #[async_trait]
 pub trait UserRepositoryTrait {
     fn new(db_conn: &Arc<Database>) -> Self;
-    async fn find_by_name(&self, email: String) -> Option<User>;
-    async fn find(&self, id: u64) -> Result<User, Error>;
+    async fn find_by_name(&self, name: String) -> Option<User>;
+    async fn find(&self, id: i64) -> Result<User, Error>;
 }
 
 #[async_trait]
@@ -26,19 +26,19 @@ impl UserRepositoryTrait for UserRepository {
     }
 
     async fn find_by_name(&self, name: String) -> Option<User> {
-        let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE name = ?")
+        let user = sqlx::query_as::<Postgres, User>("SELECT * FROM users WHERE name = $1")
             .bind(name)
             .fetch_optional(self.db_conn.get_pool())
             .await
             .unwrap_or(None);
-        return user;
+        user
     }
 
-    async fn find(&self, id: u64) -> Result<User, Error> {
-        let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?")
+    async fn find(&self, id: i64) -> Result<User, Error> {
+        let user = sqlx::query_as::<Postgres, User>("SELECT * FROM users WHERE id = $1")
             .bind(id)
             .fetch_one(self.db_conn.get_pool())
             .await;
-        return user;
+        user
     }
 }

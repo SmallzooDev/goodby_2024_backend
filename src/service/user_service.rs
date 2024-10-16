@@ -49,19 +49,19 @@ impl UserService {
     }
 
     async fn add_user(&self, payload: UserRegisterDto) -> Result<User, SqlxError> {
-        let insert = sqlx::query_as!(
+        let user = sqlx::query_as!(
             User,
             r#"
         INSERT INTO users (name, phone_number)
-        VALUES (?, ?)
+        VALUES ($1, $2)
+        RETURNING id, name, phone_number, role
         "#,
             payload.name,
             payload.phone_number,
         )
-        .execute(self.db_conn.get_pool())
-        .await?;
+            .fetch_one(self.db_conn.get_pool())
+            .await?;
 
-        let user = self.user_repo.find(insert.last_insert_id()).await?;
         return Ok(user);
     }
 
