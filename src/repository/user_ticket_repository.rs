@@ -1,8 +1,7 @@
 use crate::config::database::{Database, DatabaseTrait};
 use crate::dto::user_ticket_count::UserTicketCount;
 use async_trait::async_trait;
-use sqlx;
-use sqlx::{Error};
+use sqlx::{Error, Transaction, Postgres};
 use std::sync::Arc;
 use crate::dto::ticket_creation_result::TicketCreationResult;
 
@@ -15,7 +14,11 @@ pub struct UserTicketRepository {
 pub trait UserTicketRepositoryTrait {
     fn new(db_conn: &Arc<Database>) -> Self;
     async fn get_ticket_ranking(&self) -> Result<Vec<UserTicketCount>, Error>;
-    async fn create_ticket(&self, user_id: i32) -> Result<TicketCreationResult, Error>;
+    async fn create_ticket_in_tx(
+        &self,
+        tx: &mut Transaction<'_, Postgres>,
+        user_id: i32
+    ) -> Result<TicketCreationResult, Error>;
 }
 
 #[async_trait]
@@ -25,6 +28,7 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
             db_conn: Arc::clone(db_conn),
         }
     }
+
     async fn get_ticket_ranking(&self) -> Result<Vec<UserTicketCount>, Error> {
         let result = sqlx::query_as!(
             UserTicketCount,
@@ -36,22 +40,26 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
             ORDER BY ticket_count DESC
         "#
         )
-        .fetch_all(self.db_conn.get_pool())
-        .await?;
+            .fetch_all(self.db_conn.get_pool())
+            .await?;
 
         Ok(result)
     }
 
-    async fn create_ticket(&self, user_id: i32) -> Result<TicketCreationResult, Error> {
+    async fn create_ticket_in_tx(
+        &self,
+        tx: &mut Transaction<'_, Postgres>,
+        user_id: i32
+    ) -> Result<TicketCreationResult, Error> {
         let ticket_number = sqlx::query_scalar!(
             r#"
             SELECT nextval('ticket_number_seq') as ticket_number
             "#
         )
-        .fetch_one(self.db_conn.get_pool())
-        .await?
-        .expect("티켓 생성에 실패했습니다.")
-        .to_string();
+            .fetch_one(&mut *tx)
+            .await?
+            .expect("티켓 생성에 실패했습니다.")
+            .to_string();
 
         sqlx::query!(
             r#"
@@ -61,8 +69,8 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
             user_id,
             ticket_number
         )
-        .execute(self.db_conn.get_pool())
-        .await?;
+            .execute(&mut *tx)
+            .await?;
 
         let result = TicketCreationResult {
             user_id,
