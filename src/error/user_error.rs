@@ -13,6 +13,8 @@ pub enum UserError {
     UserAlreadyExists,
     #[error("Invalid password")]
     InvalidPassword,
+    #[error("User not allowed")]
+    Unauthorized,
 }
 
 impl IntoResponse for UserError {
@@ -21,6 +23,7 @@ impl IntoResponse for UserError {
             UserError::UserNotFound => StatusCode::NOT_FOUND,
             UserError::UserAlreadyExists => StatusCode::BAD_REQUEST,
             UserError::InvalidPassword => StatusCode::BAD_REQUEST,
+            UserError::Unauthorized => StatusCode::UNAUTHORIZED,
         };
 
         ApiErrorResponse::send(status_code.as_u16(), Some(self.to_string()))

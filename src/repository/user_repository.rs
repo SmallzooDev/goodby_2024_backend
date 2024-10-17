@@ -15,6 +15,7 @@ pub trait UserRepositoryTrait {
     fn new(db_conn: &Arc<Database>) -> Self;
     async fn find_by_name(&self, name: String) -> Option<User>;
     async fn find(&self, id: i64) -> Result<User, Error>;
+    async fn find_all(&self) -> Result<Vec<User>, Error>;
 }
 
 #[async_trait]
@@ -40,5 +41,12 @@ impl UserRepositoryTrait for UserRepository {
             .fetch_one(self.db_conn.get_pool())
             .await;
         user
+    }
+
+    async fn find_all(&self) -> Result<Vec<User>, Error> {
+        let users = sqlx::query_as::<Postgres, User>("SELECT * FROM users")
+            .fetch_all(self.db_conn.get_pool())
+            .await?;
+        Ok(users)
     }
 }

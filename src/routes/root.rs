@@ -1,6 +1,7 @@
-use super::auth;
+use super::{all_users, auth};
 use crate::config::database::Database;
 use crate::middleware::auth as auth_middleware;
+use crate::middleware::admin as admin_middleware;
 use crate::routes::{profile, register};
 use crate::state::auth_state::AuthState;
 use crate::state::token_state::TokenState;
@@ -12,22 +13,30 @@ use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 
 pub fn routes(db_conn: Arc<Database>) -> IntoMakeService<Router> {
-    let merged_router = {
-        let auth_state = AuthState::new(&db_conn);
-        let user_state = UserState::new(&db_conn);
-        let token_state = TokenState::new(&db_conn);
+    let auth_state = Arc::new(AuthState::new(&db_conn));
+    let user_state = Arc::new(UserState::new(&db_conn));
+    let token_state = Arc::new(TokenState::new(&db_conn));
 
-        auth::routes()
-            .with_state(auth_state)
-            .merge(register::routes().with_state(user_state))
-            .merge(profile::routes().layer(ServiceBuilder::new().layer(
-                middleware::from_fn_with_state(token_state, auth_middleware::auth),
-            )))
-            .merge(Router::new().route("/health", get(|| async { "Healthy..." })))
-    };
+    let public_routes = Router::new()
+        .merge(auth::routes().with_state(auth_state.clone()))
+        .merge(register::routes().with_state(user_state.clone()))
+        .route("/health", get(|| async { "Healthy..." }));
+
+    let private_routes = Router::new()
+        .merge(profile::routes()
+        .layer(ServiceBuilder::new().layer(
+            middleware::from_fn_with_state(token_state.clone(), auth_middleware::auth),
+        )));
+
+    let admin_routes = Router::new()
+        .merge(all_users::routes().with_state(user_state).layer(ServiceBuilder::new().layer(
+            middleware::from_fn_with_state(token_state.clone(), admin_middleware::admin),
+        )));
 
     let app_router = Router::new()
-        .nest("/api", merged_router)
+        .nest("/api", public_routes)
+        .nest("/api/private", private_routes)
+        .nest("/api/admin", admin_routes)
         .layer(TraceLayer::new_for_http());
 
     app_router.into_make_service()

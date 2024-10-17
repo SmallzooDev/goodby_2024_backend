@@ -66,6 +66,14 @@ impl UserService {
     }
 
     pub fn verify_phone_number(&self, user: &User, phone_number: &str) -> bool {
-        return user.phone_number == phone_number;
+        user.phone_number == phone_number
+    }
+    pub async fn get_all_users(&self) -> Result<Vec<UserReadDto>, DbError> {
+        let users = self.user_repo.find_all().await.map_err(|e| {
+            DbError::SomethingWentWrong(e.to_string())
+        })?;
+
+        let user_dtos = users.into_iter().map(UserReadDto::from).collect();
+        Ok(user_dtos)
     }
 }

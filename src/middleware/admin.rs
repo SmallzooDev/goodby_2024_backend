@@ -9,7 +9,7 @@ use axum::headers::Header;
 use axum::{http, http::Request, middleware::Next, response::IntoResponse};
 use jsonwebtoken::errors::ErrorKind;
 
-pub async fn auth<B>(
+pub async fn admin<B>(
     State(state): State<Arc<TokenState>>,
     mut req: Request<B>,
     next: Next<B>,
@@ -33,8 +33,12 @@ pub async fn auth<B>(
             let user = token_state.user_repo.find_by_name(token_data.claims.name).await;
             match user {
                 Some(user) => {
-                    req.extensions_mut().insert(user);
-                    Ok(next.run(req).await)
+                    if user.role == "admin" {
+                        req.extensions_mut().insert(user);
+                        Ok(next.run(req).await)
+                    } else {
+                        Err(UserError::Unauthorized)?
+                    }
                 }
                 None => return Err(UserError::UserNotFound)?,
             }
