@@ -21,10 +21,15 @@ env:
 
 jobs:
   set-env:
-    - run: echo "DATABASE_URL=$DATABASE_URL" >> .env
-    - run: echo "PORT=$PORT" >> .env
-    - run: echo "JWT_SECRET=$JWT_SECRET" >> .env
-    - run: echo "JWT_TTL_IN_MINUTES=$JWT_TTL_IN_MINUTES" >> .env
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set environment variables in .env
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" >> .env
+          echo "PORT=$PORT" >> .env
+          echo "JWT_SECRET=$JWT_SECRET" >> .env
+          echo "JWT_TTL_IN_MINUTES=$JWT_TTL_IN_MINUTES" >> .env
+
   build-docker-img:
     runs-on: ubuntu-latest
     steps:
