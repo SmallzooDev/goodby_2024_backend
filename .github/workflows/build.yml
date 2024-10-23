@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+    paths-ignore:
+      - "README.md"
+      - Dockerfile
+  pull_request:
+    branches: ["main"]
+    paths-ignore:
+      - "README.md"
+      - Dockerfile
+
+env:
+  CARGO_TERM_COLOR: always
+  DATABASE_URL: ${{ variables.DATABASE_URL }}
+  PORT: ${{ variables.PORT }}
+  JWT_SECRET: ${{ variables.JWT_SECRET }}
+  JWT_TTL_IN_MINUTES: 60
+
+jobs:
+  set-env:
+    - run: echo "DATABASE_URL=$DATABASE_URL" >> $.env
+    - run: echo "PORT=$PORT" >> $.env
+    - run: echo "JWT_SECRET=$JWT_SECRET" >> $.env
+    - run: echo "JWT_TTL_IN_MINUTES=$JWT_TTL_IN_MINUTES" >> $.env
+  build-docker-img:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/example:latest
