@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT u.id AS user_id, u.name, COUNT(*) AS ticket_count\n            FROM user_tickets ut\n            JOIN users u ON ut.user_id = u.id\n            GROUP BY u.id, u.name\n            ORDER BY ticket_count DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "ticket_count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "88476c1f1b867d5841770eb74f31eddc48bbe831031135ac9e361a834691a7b4"
+}
