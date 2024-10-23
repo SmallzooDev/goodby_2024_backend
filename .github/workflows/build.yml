@@ -14,9 +14,9 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  DATABASE_URL: ${{ variables.DATABASE_URL }}
-  PORT: ${{ variables.PORT }}
-  JWT_SECRET: ${{ variables.JWT_SECRET }}
+  DATABASE_URL: ${{ vars.DATABASE_URL }}
+  PORT: ${{ vars.PORT }}
+  JWT_SECRET: ${{ vars.JWT_SECRET }}
   JWT_TTL_IN_MINUTES: 60
 
 jobs:
