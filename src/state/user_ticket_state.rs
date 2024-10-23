@@ -1,11 +1,12 @@
 use crate::config::database::Database;
-use std::sync::Arc;
 use crate::repository::user_ticket_repository::{UserTicketRepository, UserTicketRepositoryTrait};
 use crate::service::user_ticket_service::UserTicketService;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct UserTicketState {
     pub user_ticket_service: UserTicketService,
+    #[allow(dead_code)]
     pub user_ticket_repo: UserTicketRepository,
 }
 

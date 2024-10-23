@@ -6,6 +6,7 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct UserState {
     pub user_service: UserService,
+    #[allow(dead_code)]
     pub user_repo: UserRepository,
 }
 

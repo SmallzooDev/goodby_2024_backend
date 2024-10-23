@@ -59,21 +59,24 @@ impl UserService {
             payload.name,
             payload.phone_number,
         )
-            .fetch_one(self.db_conn.get_pool())
-            .await?;
+        .fetch_one(self.db_conn.get_pool())
+        .await?;
 
-        return Ok(user);
+        Ok(user)
     }
 
     pub fn verify_phone_number(&self, user: &User, phone_number: &str) -> bool {
         user.phone_number == phone_number
     }
     pub async fn get_all_users(&self) -> Result<Vec<UserReadDto>, DbError> {
-        let users = self.user_repo.find_all().await.map_err(|e| {
-            DbError::SomethingWentWrong(e.to_string())
-        })?;
+        let users = self
+            .user_repo
+            .find_all()
+            .await
+            .map_err(|e| DbError::SomethingWentWrong(e.to_string()))?;
 
         let user_dtos = users.into_iter().map(UserReadDto::from).collect();
         Ok(user_dtos)
     }
 }
+

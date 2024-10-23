@@ -13,6 +13,7 @@ pub struct UserRepository {
 pub trait UserRepositoryTrait {
     fn new(db_conn: &Arc<Database>) -> Self;
     async fn find_by_name(&self, name: String) -> Option<User>;
+    #[allow(dead_code)]
     async fn find(&self, id: i32) -> Result<User, Error>;
     async fn find_all(&self) -> Result<Vec<User>, Error>;
 }
@@ -26,28 +27,24 @@ impl UserRepositoryTrait for UserRepository {
     }
 
     async fn find_by_name(&self, name: String) -> Option<User> {
-        let user = sqlx::query_as!(
+        sqlx::query_as!(
             User,
             "SELECT id, name, phone_number, role FROM users WHERE name = $1",
             name
         )
         .fetch_optional(self.db_conn.get_pool())
         .await
-        .unwrap_or(None);
-
-        user
+        .unwrap_or(None)
     }
 
     async fn find(&self, id: i32) -> Result<User, Error> {
-        let user = sqlx::query_as!(
+        sqlx::query_as!(
             User,
             "SELECT id, name, phone_number, role FROM users WHERE id = $1",
             id
         )
         .fetch_one(self.db_conn.get_pool())
-        .await;
-
-        user
+        .await
     }
 
     async fn find_all(&self) -> Result<Vec<User>, Error> {

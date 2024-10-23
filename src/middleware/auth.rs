@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use crate::error::{api_error::ApiError, token_error::TokenError, user_error::UserError};
 use crate::repository::user_repository::UserRepositoryTrait;
 use crate::service::token_service::TokenServiceTrait;
@@ -8,6 +7,7 @@ use axum::headers::authorization::{Authorization, Bearer};
 use axum::headers::Header;
 use axum::{http, http::Request, middleware::Next, response::IntoResponse};
 use jsonwebtoken::errors::ErrorKind;
+use std::sync::Arc;
 
 pub async fn auth<B>(
     State(state): State<Arc<TokenState>>,
@@ -30,13 +30,16 @@ pub async fn auth<B>(
     let token_state = Arc::clone(&state);
     match token_state.token_service.retrieve_token_claims(token) {
         Ok(token_data) => {
-            let user = token_state.user_repo.find_by_name(token_data.claims.name).await;
+            let user = token_state
+                .user_repo
+                .find_by_name(token_data.claims.name)
+                .await;
             match user {
                 Some(user) => {
                     req.extensions_mut().insert(user);
                     Ok(next.run(req).await)
                 }
-                None => return Err(UserError::UserNotFound)?,
+                None => Err(UserError::UserNotFound)?,
             }
         }
         Err(err) => {
