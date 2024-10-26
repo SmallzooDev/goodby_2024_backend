@@ -2,12 +2,12 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["deploy"]
     paths-ignore:
       - "README.md"
       - Dockerfile
   pull_request:
-    branches: ["main"]
+    branches: ["deploy"]
     paths-ignore:
       - "README.md"
       - Dockerfile
