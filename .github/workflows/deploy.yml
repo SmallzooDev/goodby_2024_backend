@@ -1,0 +1,73 @@
+name: Deploy to Amazon ECS
+
+on:
+  push:
+    branches: ["main"]
+    paths-ignore:
+      - "README.md"
+      - Dockerfile
+
+  #  workflow_run:
+  #    workflows: ["CI"]
+  #    types:
+  #      - completed
+  #    branches:
+  #      - main
+  #    paths-ignore:
+  #      - "README.md"
+  #      - Dockerfile
+
+permissions:
+  contents: read
+
+# 환경변수 설정
+env:
+  # AWS Region
+  AWS_REGION: ap-northeast-2
+  # 도커 컨테이너명
+  CONTAINER_NAME: smallzoodev/example
+  # ECR 리포지토리명
+  ECR_REPOSITORY: "goodby-application"
+  # ECS 클러스터명
+  ECS_CLUSTER: "goodby-cluster"
+  # ECS 서비스명
+  ECS_SERVICE: "goodby-service"
+  # ECS Task definition 파일명
+  ECS_TASK_DEFINITION: "task-definition.json"
+
+jobs:
+  job:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      # 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v3
+      # AWS 자격 인증 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      # ECR 로그인
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      # ECS Task 정의
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+      # ECS Task Push
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
