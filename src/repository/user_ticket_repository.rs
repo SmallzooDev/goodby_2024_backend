@@ -1,9 +1,9 @@
 use crate::config::database::{Database, DatabaseTrait};
+use crate::dto::ticket_creation_result::TicketCreationResult;
 use crate::dto::user_ticket_count::UserTicketCount;
 use async_trait::async_trait;
-use sqlx::{Error, Transaction, Postgres};
+use sqlx::{Error, PgConnection};
 use std::sync::Arc;
-use crate::dto::ticket_creation_result::TicketCreationResult;
 
 #[derive(Clone)]
 pub struct UserTicketRepository {
@@ -16,8 +16,8 @@ pub trait UserTicketRepositoryTrait {
     async fn get_ticket_ranking(&self) -> Result<Vec<UserTicketCount>, Error>;
     async fn create_ticket_in_tx(
         &self,
-        tx: &mut Transaction<'_, Postgres>,
-        user_id: i32
+        tx: &mut PgConnection,
+        user_id: i32,
     ) -> Result<TicketCreationResult, Error>;
 }
 
@@ -48,18 +48,19 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
 
     async fn create_ticket_in_tx(
         &self,
-        tx: &mut Transaction<'_, Postgres>,
-        user_id: i32
+        tx: &mut PgConnection,
+        user_id: i32,
     ) -> Result<TicketCreationResult, Error> {
-        let ticket_number = sqlx::query_scalar!(
+        let ticket_number: i64 = sqlx::query_scalar!(
             r#"
             SELECT nextval('ticket_number_seq') as ticket_number
             "#
         )
             .fetch_one(&mut *tx)
             .await?
-            .expect("티켓 생성에 실패했습니다.")
-            .to_string();
+            .expect("Failed to generate ticket number");
+
+        let ticket_number_str = ticket_number.to_string();
 
         sqlx::query!(
             r#"
@@ -67,14 +68,14 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
             VALUES ($1, $2)
             "#,
             user_id,
-            ticket_number
+            ticket_number_str
         )
             .execute(&mut *tx)
             .await?;
 
         let result = TicketCreationResult {
             user_id,
-            ticket_number,
+            ticket_number: ticket_number_str,
             message: format!("Ticket created successfully for user {}", user_id),
         };
 

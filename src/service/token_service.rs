@@ -2,7 +2,6 @@ use crate::config::parameter;
 use crate::dto::token_dto::{TokenClaimsDto, TokenReadDto};
 use crate::entity::user::User;
 use crate::error::token_error::TokenError;
-use chrono;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 
 #[derive(Clone)]
@@ -22,9 +21,9 @@ pub trait TokenServiceTrait {
 
 impl TokenServiceTrait for TokenService {
     fn new() -> Self {
-        return Self {
+        Self {
             secret: parameter::get("JWT_SECRET"),
-        };
+        }
     }
     fn retrieve_token_claims(
         &self,
@@ -36,7 +35,7 @@ impl TokenServiceTrait for TokenService {
             &Validation::default(),
         );
 
-        return result;
+        result
     }
     fn generate_token(&self, user: User) -> Result<TokenReadDto, TokenError> {
         let iat = chrono::Utc::now().timestamp();
