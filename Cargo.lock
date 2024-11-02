@@ -2183,6 +2183,7 @@ dependencies = [
  "dotenv",
  "hyper",
  "jsonwebtoken",
+ "log",
  "mockall",
  "serde",
  "serde_json",
@@ -2192,6 +2193,7 @@ dependencies = [
  "tokio",
  "tower",
  "tower-http",
+ "tracing",
  "tracing-subscriber",
  "validator",
 ]
