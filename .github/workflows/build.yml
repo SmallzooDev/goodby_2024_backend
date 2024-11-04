@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["deploy"]
+    branches: ["deploy-2"]
     paths-ignore:
       - "README.md"
       - "Dockerfile"

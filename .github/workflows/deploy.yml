@@ -2,7 +2,7 @@ name: Deploy to Amazon ECS
 
 on:
   push:
-    branches: ["deploy2"]
+    branches: ["deploy-3"]
     paths-ignore:
       - "README.md"
       - Dockerfile
