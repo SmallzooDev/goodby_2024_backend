@@ -3,7 +3,7 @@ WORKDIR /app
 RUN apt update && apt install lld clang -y
 
 FROM chef as planner
-COPY . .
+COPY Cargo.toml Cargo.lock ./
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef as builder
@@ -16,11 +16,9 @@ COPY . .
 COPY ./.sqlx /app/.sqlx
 
 RUN cargo install sqlx-cli --no-default-features --features postgres
-
 RUN cargo build --release --bin server
 
 FROM debian:bookworm-slim AS runtime
-
 WORKDIR /app
 
 RUN apt-get update -y \
@@ -31,6 +29,7 @@ RUN apt-get update -y \
 
 COPY --from=builder /app/target/release/server server
 COPY --from=builder /app/.sqlx ./.sqlx
+COPY .env .env
 
 ENV PORT 8002
 EXPOSE 8002
