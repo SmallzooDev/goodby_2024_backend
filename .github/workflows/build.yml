@@ -27,10 +27,13 @@ jobs:
 
       - name: Set environment variables in .env
         run: |
-          echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
-          echo "PORT=$PORT" >> $GITHUB_ENV
-          echo "JWT_SECRET=$JWT_SECRET" >> $GITHUB_ENV
-          echo "JWT_TTL_IN_MINUTES=$JWT_TTL_IN_MINUTES" >> $GITHUB_ENV
+          echo "DATABASE_URL=$DATABASE_URL" >> .env
+          echo "PORT=$PORT" >> .env
+          echo "JWT_SECRET=$JWT_SECRET" >> .env
+          echo "JWT_TTL_IN_MINUTES=$JWT_TTL_IN_MINUTES" >> .env
+
+      - name: Copy .env file to Docker context
+        run: cp .env .
 
       - name: Cache cargo registry
         uses: actions/cache@v3
