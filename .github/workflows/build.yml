@@ -32,9 +32,6 @@ jobs:
           echo "JWT_SECRET=$JWT_SECRET" >> .env
           echo "JWT_TTL_IN_MINUTES=$JWT_TTL_IN_MINUTES" >> .env
 
-      - name: Copy .env file to Docker context
-        run: cp .env .
-
       - name: Cache cargo registry
         uses: actions/cache@v3
         with:
