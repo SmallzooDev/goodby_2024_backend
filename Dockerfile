@@ -1,13 +1,13 @@
-FROM lukemathwalker/cargo-chef:0.1.62-rust-bookworm as chef
+FROM lukemathwalker/cargo-chef:0.1.62-rust-bookworm AS chef
 WORKDIR /app
 RUN apt update && apt install lld clang -y
 
-FROM chef as planner
+FROM chef AS planner
 COPY Cargo.toml Cargo.lock ./
 RUN cargo chef prepare --recipe-path recipe.json
 
-FROM chef as builder
-ENV SQLX_OFFLINE true
+FROM chef AS builder
+ENV SQLX_OFFLINE=true
 
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
@@ -31,7 +31,7 @@ COPY --from=builder /app/target/release/server server
 COPY --from=builder /app/.sqlx ./.sqlx
 COPY .env .env
 
-ENV PORT 8002
+ENV PORT=8002
 EXPOSE 8002
 
 ENTRYPOINT ["./server"]
