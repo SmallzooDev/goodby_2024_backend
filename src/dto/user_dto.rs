@@ -59,3 +59,9 @@ pub struct UserTeamDto {
     pub team_id: i32,
     pub team_name: String,
 }
+
+#[derive(Serialize)]
+pub struct StatusResponse {
+    pub message: String,
+    pub code: u16,
+}

@@ -4,5 +4,7 @@ use axum::{routing::get, Router};
 use std::sync::Arc;
 
 pub fn routes() -> Router<Arc<UserState>> {
-    Router::new().route("/profile", get(profile_handler::profile))
+    Router::new()
+        .route("/profile", get(profile_handler::profile))
+        .route("/me", get(profile_handler::me))
 } 
