@@ -62,5 +62,5 @@ impl TokenServiceTrait for TokenService {
         Ok(TokenReadDto { token, iat, exp })
     }
 
-    const TOKEN_EXPIRATION: i64 = 30;
+    const TOKEN_EXPIRATION: i64 = 60 * 24;
 }

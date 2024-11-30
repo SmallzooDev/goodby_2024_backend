@@ -1,5 +1,5 @@
 use crate::config::database::{Database, DatabaseTrait};
-use crate::dto::user_dto::{UserReadDto, UserRegisterDto};
+use crate::dto::user_dto::{UserReadDto, UserRegisterDto, UserMeDto, UserTeamDto};
 use crate::entity::user::User;
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
@@ -77,6 +77,54 @@ impl UserService {
 
         let user_dtos = users.into_iter().map(UserReadDto::from).collect();
         Ok(user_dtos)
+    }
+
+    pub async fn get_user_details(&self, user_id: i32) -> Result<UserMeDto, ApiError> {
+        let user = self.user_repo.find(user_id).await
+            .map_err(|e| DbError::SomethingWentWrong(e.to_string()))?;
+
+        let team = sqlx::query!(
+            r#"
+            SELECT t.id as team_id, t.team_name
+            FROM team t
+            JOIN users u ON u.team_id = t.id
+            WHERE u.id = $1
+            "#,
+            user_id
+        )
+        .fetch_optional(self.db_conn.get_pool())
+        .await
+        .map_err(|e| DbError::SomethingWentWrong(e.to_string()))?;
+
+        let tickets = sqlx::query!(
+            r#"
+            SELECT ticket_number
+            FROM user_tickets
+            WHERE user_id = $1
+            "#,
+            user_id
+        )
+        .fetch_all(self.db_conn.get_pool())
+        .await
+        .map_err(|e| DbError::SomethingWentWrong(e.to_string()))?;
+
+        let ticket_count = tickets.len() as i64;
+        let ticket_numbers = tickets.into_iter()
+            .map(|t| t.ticket_number)
+            .collect();
+
+        Ok(UserMeDto {
+            id: user.id,
+            name: user.name,
+            role: user.role,
+            phone_number: user.phone_number,
+            team: team.map(|t| UserTeamDto {
+                team_id: t.team_id,
+                team_name: t.team_name,
+            }),
+            ticket_count,
+            tickets: ticket_numbers,
+        })
     }
 }
 
