@@ -42,3 +42,20 @@ impl std::fmt::Debug for UserRegisterDto {
         f.debug_struct("User").field("name", &self.name).finish()
     }
 }
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct UserMeDto {
+    pub id: i32,
+    pub name: String,
+    pub role: String,
+    pub phone_number: String,
+    pub team: Option<UserTeamDto>,
+    pub ticket_count: i64,
+    pub tickets: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct UserTeamDto {
+    pub team_id: i32,
+    pub team_name: String,
+}

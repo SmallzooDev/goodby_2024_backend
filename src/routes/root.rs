@@ -3,7 +3,7 @@ use crate::config::database::Database;
 use crate::middleware::admin as admin_middleware;
 use crate::middleware::auth as auth_middleware;
 use crate::routes::ticket::user_ticket_routes;
-use crate::routes::{profile, register, team};
+use crate::routes::{ register, team, profile};
 use crate::state::{auth_state::AuthState, token_state::TokenState, user_state::UserState, user_ticket_state::UserTicketState, team_state::TeamState};
 use axum::routing::get;
 use axum::{middleware, Router};
@@ -25,10 +25,10 @@ pub fn routes(db_conn: Arc<Database>) -> Router {
         .route("/health", get(|| async { "Healthy..." }));
 
     let private_routes = Router::new()
-        .merge(profile::routes()
-            .layer(ServiceBuilder::new().layer(
-                middleware::from_fn_with_state(token_state.clone(), auth_middleware::auth),
-            )));
+        .merge(profile::routes().with_state(user_state.clone()))
+        .layer(ServiceBuilder::new().layer(
+            middleware::from_fn_with_state(token_state.clone(), auth_middleware::auth),
+        ));
 
     let admin_routes = Router::new()
         .merge(all_users::routes().with_state(user_state.clone()))
