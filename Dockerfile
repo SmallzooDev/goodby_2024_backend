@@ -15,7 +15,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 COPY ./.sqlx /app/.sqlx
 
-RUN cargo install sqlx-cli --no-default-features --features postgres
+RUN cargo install sqlx-cli --no-default-features --locked --features postgres
 
 RUN cargo build --release --bin server
 
