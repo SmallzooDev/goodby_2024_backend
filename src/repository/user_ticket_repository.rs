@@ -120,13 +120,7 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
         .fetch_all(&mut *tx)
         .await?;
 
-        let mut results = Vec::new();
-        let ticket_numbers: Vec<String> = available_tickets
-            .iter()
-            .map(|ticket| ticket.ticket_number.clone())
-            .collect();
-
-        Ok(results)
+        Ok(available_tickets)
     }
 
     async fn mark_tickets_as_used(
