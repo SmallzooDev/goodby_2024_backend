@@ -29,28 +29,41 @@ impl UserRepositoryTrait for UserRepository {
     async fn find_by_name(&self, name: String) -> Option<User> {
         sqlx::query_as!(
             User,
-            "SELECT id, name, phone_number, role FROM users WHERE name = $1",
+            r#"
+            SELECT id, name, phone_number, role, department_name
+            FROM users
+            WHERE name = $1
+            "#,
             name
         )
         .fetch_optional(self.db_conn.get_pool())
         .await
-        .unwrap_or(None)
+        .ok()?
     }
 
     async fn find(&self, id: i32) -> Result<User, Error> {
-        sqlx::query_as!(
+        let user = sqlx::query_as!(
             User,
-            "SELECT id, name, phone_number, role FROM users WHERE id = $1",
+            r#"
+            SELECT id, name, phone_number, role, department_name
+            FROM users
+            WHERE id = $1
+            "#,
             id
         )
         .fetch_one(self.db_conn.get_pool())
-        .await
+        .await?;
+
+        Ok(user)
     }
 
     async fn find_all(&self) -> Result<Vec<User>, Error> {
-        let users = sqlx::query_as!(User, "SELECT id, name, phone_number, role FROM users")
-            .fetch_all(self.db_conn.get_pool())
-            .await?;
+        let users = sqlx::query_as!(
+            User,
+            "SELECT id, name, phone_number, role, department_name FROM users"
+        )
+        .fetch_all(self.db_conn.get_pool())
+        .await?;
 
         Ok(users)
     }

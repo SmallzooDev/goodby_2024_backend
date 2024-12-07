@@ -6,4 +6,5 @@ pub struct User {
     pub name: String,
     pub phone_number: String,
     pub role: String,
+    pub department_name: String,
 }

@@ -55,6 +55,7 @@ pub struct UserMeDto {
     pub name: String,
     pub role: String,
     pub phone_number: String,
+    pub department_name: String,
     pub team: Option<UserTeamDto>,
     pub ticket_count: i64,
     pub tickets: Vec<UserTicketInfo>,

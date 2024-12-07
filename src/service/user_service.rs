@@ -52,9 +52,9 @@ impl UserService {
         let user = sqlx::query_as!(
             User,
             r#"
-        INSERT INTO users (name, phone_number)
-        VALUES ($1, $2)
-        RETURNING id, name, phone_number, role
+        INSERT INTO users (name, phone_number, department_name)
+        VALUES ($1, $2, 'purple')
+        RETURNING id, name, phone_number, role, department_name
         "#,
             payload.name,
             payload.phone_number,
@@ -121,6 +121,7 @@ impl UserService {
             name: user.name,
             role: user.role,
             phone_number: user.phone_number,
+            department_name: user.department_name,
             team: team.map(|t| UserTeamDto {
                 team_id: t.team_id,
                 team_name: t.team_name,
