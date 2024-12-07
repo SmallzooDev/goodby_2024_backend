@@ -8,7 +8,7 @@ pub struct UserLoginDto {
     pub phone_number: String,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate)]
+#[derive(Clone, Serialize, Deserialize, Validate, PartialEq)]
 pub struct UserRegisterDto {
     pub name: String,
     pub phone_number: String,
