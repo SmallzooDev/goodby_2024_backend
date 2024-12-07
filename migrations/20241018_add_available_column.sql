@@ -1,0 +1,2 @@
+ALTER TABLE user_tickets
+ADD COLUMN available BOOLEAN NOT NULL DEFAULT true; 

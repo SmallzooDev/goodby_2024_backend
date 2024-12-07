@@ -1,5 +1,5 @@
 use crate::config::database::{Database, DatabaseTrait};
-use crate::dto::user_dto::{UserReadDto, UserRegisterDto, UserMeDto, UserTeamDto};
+use crate::dto::user_dto::{UserReadDto, UserRegisterDto, UserMeDto, UserTeamDto, UserTicketInfo};
 use crate::entity::user::User;
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
@@ -98,7 +98,7 @@ impl UserService {
 
         let tickets = sqlx::query!(
             r#"
-            SELECT ticket_number
+            SELECT ticket_number, available
             FROM user_tickets
             WHERE user_id = $1
             "#,
@@ -110,7 +110,10 @@ impl UserService {
 
         let ticket_count = tickets.len() as i64;
         let ticket_numbers = tickets.into_iter()
-            .map(|t| t.ticket_number)
+            .map(|t| UserTicketInfo {
+                ticket_number: t.ticket_number,
+                available: t.available,
+            })
             .collect();
 
         Ok(UserMeDto {

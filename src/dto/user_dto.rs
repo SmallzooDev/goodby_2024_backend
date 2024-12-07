@@ -44,6 +44,12 @@ impl std::fmt::Debug for UserRegisterDto {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct UserTicketInfo {
+    pub ticket_number: String,
+    pub available: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UserMeDto {
     pub id: i32,
     pub name: String,
@@ -51,7 +57,7 @@ pub struct UserMeDto {
     pub phone_number: String,
     pub team: Option<UserTeamDto>,
     pub ticket_count: i64,
-    pub tickets: Vec<String>,
+    pub tickets: Vec<UserTicketInfo>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

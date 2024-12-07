@@ -64,8 +64,8 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
 
         sqlx::query!(
             r#"
-            INSERT INTO user_tickets (user_id, ticket_number)
-            VALUES ($1, $2)
+            INSERT INTO user_tickets (user_id, ticket_number, available)
+            VALUES ($1, $2, true)
             "#,
             user_id,
             ticket_number_str
@@ -77,6 +77,7 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
             user_id,
             ticket_number: ticket_number_str,
             message: format!("Ticket created successfully for user {}", user_id),
+            available: true,
         };
 
         Ok(result)

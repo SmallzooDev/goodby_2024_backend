@@ -6,4 +6,5 @@ pub struct TicketCreationResult {
     pub user_id: i32,
     pub ticket_number: String,
     pub message: String,
+    pub available: bool,
 }

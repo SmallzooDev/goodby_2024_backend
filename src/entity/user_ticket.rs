@@ -6,4 +6,5 @@ pub struct UserTicket {
     pub user_id: i32,
     pub ticket_number: String,
     pub role: String,
+    pub available: bool,
 }
