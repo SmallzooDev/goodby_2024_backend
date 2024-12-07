@@ -10,6 +10,8 @@ pub async fn auth(
     State(state): State<Arc<AuthState>>,
     ValidatedRequest(payload): ValidatedRequest<UserLoginDto>,
 ) -> Result<Json<TokenReadDto>, ApiError> {
+    tracing::info!(target: "auth", "로그인 시도: {}", payload.name);
+    
     let user = state
         .user_repo
         .find_by_name(payload.name)
@@ -20,7 +22,10 @@ pub async fn auth(
         .user_service
         .verify_phone_number(&user, &payload.phone_number)
     {
-        true => Ok(Json(state.token_service.generate_token(user)?)),
+        true => {
+            tracing::info!(target: "auth", "로그인 성공: {}", user.name);
+            Ok(Json(state.token_service.generate_token(user)?))
+        },
         false => Err(UserError::InvalidPassword)?,
     }
 }

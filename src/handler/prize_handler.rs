@@ -32,11 +32,29 @@ pub async fn draw_prize_handler(
     State(state): State<Arc<PrizeState>>,
     Json(payload): Json<DrawPrizeRequestDto>,
 ) -> Result<Json<Vec<PrizeDrawDto>>, ApiError> {
+    tracing::info!(
+        target: "prize",
+        "추첨 시작: prize_id={}, count={}",
+        payload.prize_id,
+        payload.count
+    );
+
     let draws = state
         .prize_draw_service
         .draw_prize(payload)
         .await
         .map_err(ApiError::from)?;
+
+    for draw in &draws {
+        tracing::info!(
+            target: "prize",
+            "당첨: prize={}, user={}, ticket={}",
+            draw.prize_name,
+            draw.user_name,
+            draw.ticket_number
+        );
+    }
+
     Ok(Json(draws))
 }
 
