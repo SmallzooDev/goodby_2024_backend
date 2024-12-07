@@ -1,6 +1,7 @@
 use crate::config::database::{Database, DatabaseTrait};
 use crate::dto::ticket_creation_result::TicketCreationResult;
 use crate::dto::user_ticket_count::UserTicketCount;
+use crate::dto::available_ticket::AvailableTicket;
 use async_trait::async_trait;
 use sqlx::{Error, PgConnection};
 use std::sync::Arc;
@@ -19,6 +20,16 @@ pub trait UserTicketRepositoryTrait {
         tx: &mut PgConnection,
         user_id: i32,
     ) -> Result<TicketCreationResult, Error>;
+    async fn get_available_tickets_for_draw(
+        &self,
+        tx: &mut PgConnection,
+        count: i64,
+    ) -> Result<Vec<AvailableTicket>, Error>;
+    async fn mark_tickets_as_used(
+        &self,
+        tx: &mut PgConnection,
+        ticket_numbers: &[String],
+    ) -> Result<(), Error>;
 }
 
 #[async_trait]
@@ -81,5 +92,59 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
         };
 
         Ok(result)
+    }
+
+    async fn get_available_tickets_for_draw(
+        &self,
+        tx: &mut PgConnection,
+        count: i64,
+    ) -> Result<Vec<AvailableTicket>, Error> {
+        let available_tickets = sqlx::query_as!(
+            AvailableTicket,
+            r#"
+            SELECT 
+                u.id as "user_id",
+                u.name as "user_name", 
+                t.team_name as "department_name",
+                ut.ticket_number as "ticket_number"
+            FROM user_tickets ut
+            JOIN users u ON ut.user_id = u.id
+            JOIN team t ON u.team_id = t.id
+            WHERE ut.available = true
+            ORDER BY RANDOM()
+            LIMIT $1
+            FOR UPDATE
+            "#,
+            count
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
+        let mut results = Vec::new();
+        let ticket_numbers: Vec<String> = available_tickets
+            .iter()
+            .map(|ticket| ticket.ticket_number.clone())
+            .collect();
+
+        Ok(results)
+    }
+
+    async fn mark_tickets_as_used(
+        &self,
+        tx: &mut PgConnection,
+        ticket_numbers: &[String],
+    ) -> Result<(), Error> {
+        sqlx::query!(
+            r#"
+            UPDATE user_tickets
+            SET available = false
+            WHERE ticket_number = ANY($1)
+            "#,
+            ticket_numbers
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        Ok(())
     }
 }
