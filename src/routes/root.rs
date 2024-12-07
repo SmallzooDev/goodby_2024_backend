@@ -1,4 +1,4 @@
-use super::{all_users, auth};
+use super::{all_users, auth, prize};
 use crate::config::database::Database;
 use crate::middleware::admin as admin_middleware;
 use crate::middleware::auth as auth_middleware;
@@ -11,6 +11,7 @@ use std::sync::Arc;
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 use tower_http::cors::{CorsLayer, Any};
+use crate::state::prize_state::PrizeState;
 
 pub fn routes(db_conn: Arc<Database>) -> Router {
     let auth_state = Arc::new(AuthState::new(&db_conn));
@@ -18,10 +19,12 @@ pub fn routes(db_conn: Arc<Database>) -> Router {
     let token_state = Arc::new(TokenState::new(&db_conn));
     let user_ticket_state = Arc::new(UserTicketState::new(&db_conn));
     let team_state = Arc::new(TeamState::new(&db_conn));
+    let prize_state = Arc::new(PrizeState::new(&db_conn));
 
     let public_routes = Router::new()
         .merge(auth::routes().with_state(auth_state.clone()))
         .merge(register::routes().with_state(user_state.clone()))
+        .merge(prize::public_prize_routes().with_state(prize_state.clone()))
         .route("/health", get(|| async { "Healthy..." }));
 
     let private_routes = Router::new()
@@ -34,6 +37,7 @@ pub fn routes(db_conn: Arc<Database>) -> Router {
         .merge(all_users::routes().with_state(user_state.clone()))
         .merge(user_ticket_routes().with_state(user_ticket_state.clone()))
         .merge(team::team_routes().with_state(team_state.clone()))
+        .merge(prize::admin_prize_routes().with_state(prize_state.clone()))
         .layer(ServiceBuilder::new().layer(
             middleware::from_fn_with_state(token_state.clone(), admin_middleware::admin),
         ));

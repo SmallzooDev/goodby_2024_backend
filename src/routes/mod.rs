@@ -5,3 +5,4 @@ pub mod root;
 mod all_users;
 mod ticket;
 mod team;
+mod prize;
