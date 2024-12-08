@@ -11,6 +11,7 @@ pub struct PrizeDrawRepository {
 
 #[async_trait]
 pub trait PrizeDrawRepositoryTrait: Send + Sync {
+    async fn begin_tx(&self) -> Result<sqlx::Transaction<'static, sqlx::Postgres>, Error>;
     async fn create_draw_in_tx(
         &self,
         tx: &mut PgConnection,
@@ -36,6 +37,10 @@ impl PrizeDrawRepository {
 
 #[async_trait]
 impl PrizeDrawRepositoryTrait for PrizeDrawRepository {
+    async fn begin_tx(&self) -> Result<sqlx::Transaction<'static, sqlx::Postgres>, Error> {
+        self.db_conn.get_pool().begin().await
+    }
+
     async fn create_draw_in_tx(
         &self,
         tx: &mut PgConnection,

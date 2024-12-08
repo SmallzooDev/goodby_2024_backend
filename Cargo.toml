@@ -1,7 +1,15 @@
 [package]
-name = "server"
+name = "goodbye_2024_backend"
 version = "0.1.0"
 edition = "2021"
+
+[[bin]]
+name = "goodbye_2024_backend"
+path = "src/main.rs"
+
+[lib]
+name = "goodbye_2024_backend"
+path = "src/lib.rs"
 
 [dependencies]
 axum = { version = "0.6.3", features = ["headers"] }

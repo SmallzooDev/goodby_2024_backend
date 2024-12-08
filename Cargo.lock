@@ -914,6 +914,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
+name = "goodbye_2024_backend"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "bcrypt",
+ "chrono",
+ "dotenv",
+ "http",
+ "hyper",
+ "jsonwebtoken",
+ "log",
+ "mockall",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "sqlx-cli",
+ "thiserror",
+ "time",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "validator",
+]
+
+[[package]]
 name = "h2"
 version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2102,35 +2131,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "axum",
- "bcrypt",
- "chrono",
- "dotenv",
- "http",
- "hyper",
- "jsonwebtoken",
- "log",
- "mockall",
- "serde",
- "serde_json",
- "sqlx",
- "sqlx-cli",
- "thiserror",
- "time",
- "tokio",
- "tower",
- "tower-http",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "validator",
 ]
 
 [[package]]

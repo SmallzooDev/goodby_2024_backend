@@ -1,9 +1,7 @@
-use crate::config::database::Database;
 use crate::dto::prize_dto::{CreatePrizeDto, PrizeDto};
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::repository::prize_repository::{PrizeRepository, PrizeRepositoryTrait};
-use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct PrizeService {

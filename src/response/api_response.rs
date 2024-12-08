@@ -19,6 +19,7 @@ impl<T: Serialize> ApiSuccessResponse<T>
 where
     T: Serialize,
 {
+    #[allow(dead_code)]
     pub(crate) fn send(data: T) -> Self {
         ApiSuccessResponse { data }
     }

@@ -1,25 +1,16 @@
 use std::sync::Arc;
 use tower_http::cors::{CorsLayer};
-use crate::config::{database, parameter};
-use crate::config::database::DatabaseTrait;
+use goodbye_2024_backend::config::{self, database, parameter};
+use goodbye_2024_backend::config::database::DatabaseTrait;
+use goodbye_2024_backend::routes;
+use goodbye_2024_backend::middleware;
 use tracing::info;
 use std::time::Duration;
 use axum::http::header;
-mod config;
-mod routes;
-mod dto;
-mod error;
-mod response;
-mod entity;
-mod repository;
-mod state;
-mod service;
-mod middleware;
-mod handler;
 
 #[tokio::main]
 async fn main() {
-    config::parameter::init();
+    parameter::init();
     config::logging::setup_logging().expect("Failed to setup logging");
     info!("Starting Goodbye 2024 Backend...");
 

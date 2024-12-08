@@ -1,4 +1,4 @@
-use crate::parameter;
+use crate::config::parameter;
 use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 

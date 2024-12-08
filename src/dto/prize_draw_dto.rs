@@ -7,7 +7,7 @@ pub struct DrawPrizeRequestDto {
     pub count: i32,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct PrizeDrawDto {
     pub id: i32,
     pub prize_name: String,

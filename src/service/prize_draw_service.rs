@@ -1,39 +1,36 @@
-use crate::config::database::DatabaseTrait;
 use crate::dto::prize_draw_dto::{DrawPrizeRequestDto, PrizeDrawDto};
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
-use crate::repository::prize_draw_repository::{PrizeDrawRepository, PrizeDrawRepositoryTrait};
-use crate::repository::prize_repository::{PrizeRepository, PrizeRepositoryTrait};
-use crate::repository::user_ticket_repository::{UserTicketRepository, UserTicketRepositoryTrait};
+use crate::repository::prize_draw_repository::PrizeDrawRepositoryTrait;
+use crate::repository::prize_repository::PrizeRepositoryTrait;
+use crate::repository::user_ticket_repository::UserTicketRepositoryTrait;
 use std::iter::IntoIterator;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct PrizeDrawService {
-    prize_draw_repo: PrizeDrawRepository,
-    prize_repo: PrizeRepository,
-    user_ticket_repo: UserTicketRepository,
+    prize_draw_repo: Arc<dyn PrizeDrawRepositoryTrait>,
+    prize_repo: Arc<dyn PrizeRepositoryTrait>,
+    user_ticket_repo: Arc<dyn UserTicketRepositoryTrait>,
 }
 
 impl PrizeDrawService {
     pub fn new(
-        prize_draw_repo: PrizeDrawRepository,
-        prize_repo: PrizeRepository,
-        user_ticket_repo: UserTicketRepository,
+        prize_draw_repo: impl PrizeDrawRepositoryTrait + 'static,
+        prize_repo: impl PrizeRepositoryTrait + 'static,
+        user_ticket_repo: impl UserTicketRepositoryTrait + 'static,
     ) -> Self {
         Self {
-            prize_draw_repo,
-            prize_repo,
-            user_ticket_repo,
+            prize_draw_repo: Arc::new(prize_draw_repo),
+            prize_repo: Arc::new(prize_repo),
+            user_ticket_repo: Arc::new(user_ticket_repo),
         }
     }
 
     pub async fn draw_prize(&self, payload: DrawPrizeRequestDto) -> Result<Vec<PrizeDrawDto>, ApiError> {
-        // 트랜잭션 시작
         let mut tx = self
             .prize_draw_repo
-            .db_conn
-            .get_pool()
-            .begin()
+            .begin_tx()
             .await
             .map_err(|e| ApiError::Db(DbError::SomethingWentWrong(e.to_string())))?;
 

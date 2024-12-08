@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 #[derive(sqlx::FromRow)]
 pub struct AvailableTicket {
     pub user_id: i32,
