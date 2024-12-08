@@ -9,6 +9,7 @@ pub mod state;
 pub mod service;
 pub mod middleware;
 pub mod handler;
+pub mod db;
 
 #[cfg(test)]
 pub mod tests; 

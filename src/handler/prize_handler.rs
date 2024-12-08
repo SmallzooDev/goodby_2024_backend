@@ -10,7 +10,7 @@ pub async fn create_prize_handler(
     Json(payload): Json<CreatePrizeDto>,
 ) -> Result<Json<PrizeDto>, ApiError> {
     let prize = state
-        .prize_service
+        .service
         .create_prize(payload)
         .await
         .map_err(ApiError::from)?;
@@ -21,7 +21,7 @@ pub async fn get_prizes_handler(
     State(state): State<Arc<PrizeState>>,
 ) -> Result<Json<Vec<PrizeDto>>, ApiError> {
     let prizes = state
-        .prize_service
+        .service
         .get_all_prizes()
         .await
         .map_err(ApiError::from)?;

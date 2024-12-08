@@ -4,11 +4,12 @@ use crate::error::db_error::DbError;
 use crate::repository::prize_draw_repository::PrizeDrawRepositoryTrait;
 use crate::repository::prize_repository::PrizeRepositoryTrait;
 use crate::repository::user_ticket_repository::UserTicketRepositoryTrait;
-use std::iter::IntoIterator;
+use crate::db::transaction_manager::TransactionManager;
 use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct PrizeDrawService {
+    tx_manager: Arc<TransactionManager>,
     prize_draw_repo: Arc<dyn PrizeDrawRepositoryTrait>,
     prize_repo: Arc<dyn PrizeRepositoryTrait>,
     user_ticket_repo: Arc<dyn UserTicketRepositoryTrait>,
@@ -16,11 +17,13 @@ pub struct PrizeDrawService {
 
 impl PrizeDrawService {
     pub fn new(
+        tx_manager: TransactionManager,
         prize_draw_repo: impl PrizeDrawRepositoryTrait + 'static,
         prize_repo: impl PrizeRepositoryTrait + 'static,
         user_ticket_repo: impl UserTicketRepositoryTrait + 'static,
     ) -> Self {
         Self {
+            tx_manager: Arc::new(tx_manager),
             prize_draw_repo: Arc::new(prize_draw_repo),
             prize_repo: Arc::new(prize_repo),
             user_ticket_repo: Arc::new(user_ticket_repo),
@@ -29,10 +32,10 @@ impl PrizeDrawService {
 
     pub async fn draw_prize(&self, payload: DrawPrizeRequestDto) -> Result<Vec<PrizeDrawDto>, ApiError> {
         let mut tx = self
-            .prize_draw_repo
+            .tx_manager
             .begin_tx()
             .await
-            .map_err(|e| ApiError::Db(DbError::SomethingWentWrong(e.to_string())))?;
+            .map_err(|e| ApiError::Db(e))?;
 
         // 상품 정보 조회
         let prize = self

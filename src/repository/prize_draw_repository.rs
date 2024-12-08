@@ -1,7 +1,8 @@
 use crate::config::database::{Database, DatabaseTrait};
 use crate::entity::prize_draw::PrizeDraw;
+use crate::error::db_error::DbError;
 use async_trait::async_trait;
-use sqlx::{Error, PgConnection};
+use sqlx::{PgConnection, Postgres, Transaction};
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -11,20 +12,19 @@ pub struct PrizeDrawRepository {
 
 #[async_trait]
 pub trait PrizeDrawRepositoryTrait: Send + Sync {
-    async fn begin_tx(&self) -> Result<sqlx::Transaction<'static, sqlx::Postgres>, Error>;
     async fn create_draw_in_tx(
         &self,
-        tx: &mut PgConnection,
+        tx: &mut Transaction<'_, Postgres>,
         prize_id: i32,
         prize_name: String,
         user_id: i32,
         user_name: String,
         department_name: String,
         ticket_number: String,
-    ) -> Result<PrizeDraw, Error>;
+    ) -> Result<PrizeDraw, DbError>;
     
-    async fn find_all(&self) -> Result<Vec<PrizeDraw>, Error>;
-    async fn find_by_prize_id(&self, prize_id: i32) -> Result<Vec<PrizeDraw>, Error>;
+    async fn find_all(&self) -> Result<Vec<PrizeDraw>, DbError>;
+    async fn find_by_prize_id(&self, prize_id: i32) -> Result<Vec<PrizeDraw>, DbError>;
 }
 
 impl PrizeDrawRepository {
@@ -37,20 +37,16 @@ impl PrizeDrawRepository {
 
 #[async_trait]
 impl PrizeDrawRepositoryTrait for PrizeDrawRepository {
-    async fn begin_tx(&self) -> Result<sqlx::Transaction<'static, sqlx::Postgres>, Error> {
-        self.db_conn.get_pool().begin().await
-    }
-
     async fn create_draw_in_tx(
         &self,
-        tx: &mut PgConnection,
+        tx: &mut Transaction<'_, Postgres>,
         prize_id: i32,
         prize_name: String,
         user_id: i32,
         user_name: String,
         department_name: String,
         ticket_number: String,
-    ) -> Result<PrizeDraw, Error> {
+    ) -> Result<PrizeDraw, DbError> {
         sqlx::query_as!(
             PrizeDraw,
             r#"
@@ -65,11 +61,12 @@ impl PrizeDrawRepositoryTrait for PrizeDrawRepository {
             department_name,
             ticket_number
         )
-        .fetch_one(&mut *tx)
+        .fetch_one(tx as &mut PgConnection)
         .await
+        .map_err(|e| DbError::SomethingWentWrong(e.to_string()))
     }
 
-    async fn find_all(&self) -> Result<Vec<PrizeDraw>, Error> {
+    async fn find_all(&self) -> Result<Vec<PrizeDraw>, DbError> {
         sqlx::query_as!(
             PrizeDraw,
             r#"
@@ -80,9 +77,10 @@ impl PrizeDrawRepositoryTrait for PrizeDrawRepository {
         )
         .fetch_all(self.db_conn.get_pool())
         .await
+        .map_err(|e| DbError::SomethingWentWrong(e.to_string()))
     }
 
-    async fn find_by_prize_id(&self, prize_id: i32) -> Result<Vec<PrizeDraw>, Error> {
+    async fn find_by_prize_id(&self, prize_id: i32) -> Result<Vec<PrizeDraw>, DbError> {
         sqlx::query_as!(
             PrizeDraw,
             r#"
@@ -95,5 +93,6 @@ impl PrizeDrawRepositoryTrait for PrizeDrawRepository {
         )
         .fetch_all(self.db_conn.get_pool())
         .await
+        .map_err(|e| DbError::SomethingWentWrong(e.to_string()))
     }
 } 

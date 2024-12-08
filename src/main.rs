@@ -40,7 +40,8 @@ async fn main() {
         ])
         .max_age(Duration::from_secs(60 * 60));
 
-    let app = routes::root::routes(Arc::new(connection))
+    let app = routes::root::create_routes(Arc::new(connection))
+        .await
         .layer(cors)
         .layer(tower_http::trace::TraceLayer::new_for_http())
         .layer(axum::middleware::from_fn(middleware::logging::log_request));
