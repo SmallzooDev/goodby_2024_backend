@@ -7,7 +7,16 @@ COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef as builder
-ENV SQLX_OFFLINE true
+ARG DATABASE_URL
+ARG PORT
+ARG JWT_SECRET
+ARG JWT_TTL_IN_MINUTES
+
+ENV DATABASE_URL=${DATABASE_URL}
+ENV PORT=${PORT}
+ENV JWT_SECRET=${JWT_SECRET}
+ENV JWT_TTL_IN_MINUTES=${JWT_TTL_IN_MINUTES}
+ENV SQLX_OFFLINE=true
 
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
@@ -16,7 +25,6 @@ COPY . .
 COPY ./.sqlx /app/.sqlx
 
 RUN cargo install sqlx-cli --no-default-features --locked --features postgres
-
 RUN cargo build --release --bin server
 
 FROM debian:bookworm-slim AS runtime
@@ -30,9 +38,11 @@ RUN apt-get update -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/server server
+COPY --from=builder /app/.env ./.env
 COPY --from=builder /app/.sqlx ./.sqlx
 
-ENV PORT 8002
-EXPOSE 8002
+ARG PORT=8002
+ENV PORT=${PORT}
+EXPOSE ${PORT}
 
 ENTRYPOINT ["./server"]

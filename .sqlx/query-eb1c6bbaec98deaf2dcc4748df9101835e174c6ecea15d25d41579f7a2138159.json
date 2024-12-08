@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE user_tickets\n            SET available = false\n            WHERE ticket_number = ANY($1)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "eb1c6bbaec98deaf2dcc4748df9101835e174c6ecea15d25d41579f7a2138159"
+}

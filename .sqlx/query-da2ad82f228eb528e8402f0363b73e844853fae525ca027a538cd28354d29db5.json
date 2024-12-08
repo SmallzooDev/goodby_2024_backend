@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, phone_number, role FROM users WHERE name = $1",
+  "query": "\n            INSERT INTO prizes (name, stock)\n            VALUES ($1, $2)\n            RETURNING id, name, stock\n            ",
   "describe": {
     "columns": [
       {
@@ -15,26 +15,21 @@
       },
       {
         "ordinal": 2,
-        "name": "phone_number",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 3,
-        "name": "role",
-        "type_info": "Varchar"
+        "name": "stock",
+        "type_info": "Int4"
       }
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Text",
+        "Int4"
       ]
     },
     "nullable": [
       false,
       false,
-      false,
       false
     ]
   },
-  "hash": "990b9c8ed4476bb67873e1c22f666a49d98af44475884757f29c1de74e9959a7"
+  "hash": "da2ad82f228eb528e8402f0363b73e844853fae525ca027a538cd28354d29db5"
 }

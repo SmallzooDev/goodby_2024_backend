@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT \n                u.id as \"user_id\",\n                u.name as \"user_name\", \n                t.team_name as \"department_name\",\n                ut.ticket_number as \"ticket_number\"\n            FROM user_tickets ut\n            JOIN users u ON ut.user_id = u.id\n            JOIN team t ON u.team_id = t.id\n            WHERE ut.available = true\n            ORDER BY RANDOM()\n            LIMIT $1\n            FOR UPDATE\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "department_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "ticket_number",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "4c43331712680fae906b4485e5f29a42e773b6f279504056530e2439be8e7159"
+}

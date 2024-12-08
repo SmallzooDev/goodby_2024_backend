@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, prize_id, prize_name, user_id, user_name, department_name, ticket_number, created_at\n            FROM prize_draws\n            WHERE prize_id = $1\n            ORDER BY created_at DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "prize_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "prize_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "user_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "user_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "department_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "ticket_number",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "e8890b38ced61ca1a32348137cba9fa2a40e01020cbdf94e2d4519f633dfc731"
+}

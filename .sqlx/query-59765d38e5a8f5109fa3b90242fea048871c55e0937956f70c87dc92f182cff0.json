@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, phone_number, role FROM users",
+  "query": "SELECT id, name, phone_number, role, department_name FROM users",
   "describe": {
     "columns": [
       {
@@ -22,6 +22,11 @@
         "ordinal": 3,
         "name": "role",
         "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "department_name",
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -31,8 +36,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "e5b9a59af8c3f7bab43a2e45e20a2aa4c60ba8a88466583f26c10aaff3459175"
+  "hash": "59765d38e5a8f5109fa3b90242fea048871c55e0937956f70c87dc92f182cff0"
 }

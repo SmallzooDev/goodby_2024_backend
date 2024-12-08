@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, phone_number, role FROM users WHERE id = $1",
+  "query": "SELECT id, name, stock FROM prizes ORDER BY id",
   "describe": {
     "columns": [
       {
@@ -15,26 +15,18 @@
       },
       {
         "ordinal": 2,
-        "name": "phone_number",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 3,
-        "name": "role",
-        "type_info": "Varchar"
+        "name": "stock",
+        "type_info": "Int4"
       }
     ],
     "parameters": {
-      "Left": [
-        "Int4"
-      ]
+      "Left": []
     },
     "nullable": [
-      false,
       false,
       false,
       false
     ]
   },
-  "hash": "25c15868d42e2dae87a240da1ff8305114b6ce28d2e326f5236d1e6152524a84"
+  "hash": "98e02dde793089aa5d920fb8bd5bbaf6a2b8ded869f8285be7a9b35cfc1aea8b"
 }

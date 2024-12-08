@@ -1,0 +1,44 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT \n                t.id as \"team_id!\",\n                t.team_name as \"team_name!\",\n                COALESCE(u.id, 0) as \"user_id!\",\n                COALESCE(u.name, '') as \"name!\",\n                COALESCE(COUNT(ut.id), 0)::bigint as \"ticket_count!\"\n            FROM team t\n            LEFT JOIN users u ON u.team_id = t.id\n            LEFT JOIN user_tickets ut ON ut.user_id = u.id\n            GROUP BY t.id, t.team_name, u.id, u.name\n            ORDER BY t.id, u.name\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "team_id!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "team_name!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "user_id!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "name!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "ticket_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "56438313b71648629a64373c25fbe1f86d5c2179778c48f3d95463880c4c7d17"
+}

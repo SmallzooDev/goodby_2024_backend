@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        INSERT INTO users (name, phone_number)\n        VALUES ($1, $2)\n        RETURNING id, name, phone_number, role\n        ",
+  "query": "\n            SELECT id, name, phone_number, role, department_name\n            FROM users\n            WHERE name = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -22,11 +22,15 @@
         "ordinal": 3,
         "name": "role",
         "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "department_name",
+        "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
-        "Text",
         "Text"
       ]
     },
@@ -34,8 +38,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "b3d31e02a7c9904ff3ea7623dffe65c9aa994c9e42adafb235ae820a2ab9dcbf"
+  "hash": "8bb01deb3c45cca7673ff499ae4d3ad0bf0aa5e4baf9b7e2562cf4eecc386f6d"
 }

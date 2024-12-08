@@ -1,0 +1,69 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO prize_draws (prize_id, prize_name, user_id, user_name, department_name, ticket_number)\n            VALUES ($1, $2, $3, $4, $5, $6)\n            RETURNING id, prize_id, prize_name, user_id, user_name, department_name, ticket_number, created_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "prize_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "prize_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "user_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "user_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "department_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "ticket_number",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text",
+        "Int4",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "ccbd3a4cfece57e6595856832f33fed17b5ae29e236b66e791011eeb87f66538"
+}
