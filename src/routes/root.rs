@@ -17,9 +17,9 @@ pub async fn create_routes(db_conn: Arc<Database>) -> Router {
     let auth_state = Arc::new(AuthState::new(&db_conn));
     let user_state = Arc::new(UserState::new(&db_conn));
     let token_state = Arc::new(TokenState::new(&db_conn));
-    let user_ticket_state = Arc::new(UserTicketState::new(&db_conn));
+    let user_ticket_state = Arc::new(UserTicketState::new(db_conn.clone()));
     let team_state = Arc::new(TeamState::new(&db_conn));
-    let prize_state = Arc::new(PrizeState::new(db_conn));
+    let prize_state = Arc::new(PrizeState::new(db_conn.clone()));
 
     let public_routes = Router::new()
         .merge(auth::routes().with_state(auth_state.clone()))

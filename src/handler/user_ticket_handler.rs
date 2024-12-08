@@ -13,7 +13,7 @@ pub async fn create_tickets_handler(
     tracing::info!(target: "user_ticket", "티켓 생성 요청: {} 명", payload.users_id.len());
     
     let results = state
-        .user_ticket_service
+        .service
         .create_tickets_for_users(payload.users_id)
         .await
         .map_err(ApiError::from)?;
@@ -34,7 +34,7 @@ pub async fn get_ticket_ranking_handler(
     State(state): State<Arc<UserTicketState>>,
 ) -> Result<Json<Vec<UserTicketCount>>, ApiError> {
     let rankings = state
-        .user_ticket_service
+        .service
         .get_ticket_ranking()
         .await
         .map_err(ApiError::from)?;

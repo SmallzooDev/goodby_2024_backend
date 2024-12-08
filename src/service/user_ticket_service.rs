@@ -1,19 +1,25 @@
-use crate::config::database::DatabaseTrait;
 use crate::dto::ticket_creation_result::TicketCreationResult;
 use crate::dto::user_ticket_count::UserTicketCount;
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
-use crate::repository::user_ticket_repository::{UserTicketRepository, UserTicketRepositoryTrait};
+use crate::repository::user_ticket_repository::UserTicketRepositoryTrait;
+use crate::db::transaction_manager::TransactionManager;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct UserTicketService {
-    user_ticket_repo: UserTicketRepository,
+    tx_manager: Arc<TransactionManager>,
+    user_ticket_repo: Arc<dyn UserTicketRepositoryTrait>,
 }
 
 impl UserTicketService {
-    pub fn new(user_ticket_repo: UserTicketRepository) -> Self {
+    pub fn new(
+        tx_manager: TransactionManager,
+        user_ticket_repo: impl UserTicketRepositoryTrait + 'static,
+    ) -> Self {
         Self {
-            user_ticket_repo
+            tx_manager: Arc::new(tx_manager),
+            user_ticket_repo: Arc::new(user_ticket_repo),
         }
     }
 
@@ -22,12 +28,10 @@ impl UserTicketService {
         user_ids: Vec<i32>,
     ) -> Result<Vec<TicketCreationResult>, ApiError> {
         let mut tx = self
-            .user_ticket_repo
-            .db_conn
-            .get_pool()
-            .begin()
+            .tx_manager
+            .begin_tx()
             .await
-            .map_err(|e| ApiError::Db(DbError::SomethingWentWrong(e.to_string())))?;
+            .map_err(ApiError::Db)?;
 
         let mut results = Vec::new();
 

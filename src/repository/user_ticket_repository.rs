@@ -2,9 +2,11 @@ use crate::config::database::{Database, DatabaseTrait};
 use crate::dto::ticket_creation_result::TicketCreationResult;
 use crate::dto::user_ticket_count::UserTicketCount;
 use crate::dto::available_ticket::AvailableTicket;
+use crate::error::db_error::DbError;
 use async_trait::async_trait;
-use sqlx::{Error, PgConnection};
+use sqlx::{Postgres, Transaction};
 use std::sync::Arc;
+use sqlx::postgres::PgConnection;
 
 #[derive(Clone)]
 pub struct UserTicketRepository {
@@ -13,22 +15,22 @@ pub struct UserTicketRepository {
 
 #[async_trait]
 pub trait UserTicketRepositoryTrait: Send + Sync {
-    async fn get_ticket_ranking(&self) -> Result<Vec<UserTicketCount>, Error>;
+    async fn get_ticket_ranking(&self) -> Result<Vec<UserTicketCount>, DbError>;
     async fn create_ticket_in_tx(
         &self,
-        tx: &mut PgConnection,
+        tx: &mut Transaction<'_, Postgres>,
         user_id: i32,
-    ) -> Result<TicketCreationResult, Error>;
+    ) -> Result<TicketCreationResult, DbError>;
     async fn get_available_tickets_for_draw(
         &self,
-        tx: &mut PgConnection,
+        tx: &mut Transaction<'_, Postgres>,
         count: i64,
-    ) -> Result<Vec<AvailableTicket>, Error>;
+    ) -> Result<Vec<AvailableTicket>, DbError>;
     async fn mark_tickets_as_used(
         &self,
-        tx: &mut PgConnection,
+        tx: &mut Transaction<'_, Postgres>,
         ticket_numbers: &[String],
-    ) -> Result<(), Error>;
+    ) -> Result<(), DbError>;
 }
 
 impl UserTicketRepository {
@@ -41,7 +43,7 @@ impl UserTicketRepository {
 
 #[async_trait]
 impl UserTicketRepositoryTrait for UserTicketRepository {
-    async fn get_ticket_ranking(&self) -> Result<Vec<UserTicketCount>, Error> {
+    async fn get_ticket_ranking(&self) -> Result<Vec<UserTicketCount>, DbError> {
         let result = sqlx::query_as!(
             UserTicketCount,
             r#"
@@ -53,26 +55,26 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
         "#
         )
             .fetch_all(self.db_conn.get_pool())
-            .await?;
+            .await
+            .map_err(|e| DbError::SomethingWentWrong(e.to_string()))?;
 
         Ok(result)
     }
 
     async fn create_ticket_in_tx(
         &self,
-        tx: &mut PgConnection,
+        tx: &mut Transaction<'_, Postgres>,
         user_id: i32,
-    ) -> Result<TicketCreationResult, Error> {
+    ) -> Result<TicketCreationResult, DbError> {
         let ticket_number: i64 = sqlx::query_scalar!(
             r#"
             SELECT nextval('ticket_number_seq') as ticket_number
             "#
         )
-            .fetch_one(&mut *tx)
-            .await?
+            .fetch_one(tx as &mut PgConnection)
+            .await
+            .map_err(|e| DbError::SomethingWentWrong(e.to_string()))?
             .expect("Failed to generate ticket number");
-
-        let ticket_number_str = ticket_number.to_string();
 
         sqlx::query!(
             r#"
@@ -80,27 +82,26 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
             VALUES ($1, $2, true)
             "#,
             user_id,
-            ticket_number_str
+            ticket_number.to_string(),
         )
-            .execute(&mut *tx)
-            .await?;
+            .execute(tx as &mut PgConnection)
+            .await
+            .map_err(|e| DbError::SomethingWentWrong(e.to_string()))?;
 
-        let result = TicketCreationResult {
+        Ok(TicketCreationResult {
             user_id,
-            ticket_number: ticket_number_str,
+            ticket_number: ticket_number.to_string(),
             message: format!("Ticket created successfully for user {}", user_id),
             available: true,
-        };
-
-        Ok(result)
+        })
     }
 
     async fn get_available_tickets_for_draw(
         &self,
-        tx: &mut PgConnection,
+        tx: &mut Transaction<'_, Postgres>,
         count: i64,
-    ) -> Result<Vec<AvailableTicket>, Error> {
-        let available_tickets = sqlx::query_as!(
+    ) -> Result<Vec<AvailableTicket>, DbError> {
+        sqlx::query_as!(
             AvailableTicket,
             r#"
             SELECT 
@@ -118,17 +119,16 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
             "#,
             count
         )
-        .fetch_all(&mut *tx)
-        .await?;
-
-        Ok(available_tickets)
+        .fetch_all(tx as &mut PgConnection)
+        .await
+        .map_err(|e| DbError::SomethingWentWrong(e.to_string()))
     }
 
     async fn mark_tickets_as_used(
         &self,
-        tx: &mut PgConnection,
+        tx: &mut Transaction<'_, Postgres>,
         ticket_numbers: &[String],
-    ) -> Result<(), Error> {
+    ) -> Result<(), DbError> {
         sqlx::query!(
             r#"
             UPDATE user_tickets
@@ -137,9 +137,9 @@ impl UserTicketRepositoryTrait for UserTicketRepository {
             "#,
             ticket_numbers
         )
-        .execute(&mut *tx)
-        .await?;
-
-        Ok(())
+        .execute(tx as &mut PgConnection)
+        .await
+        .map(|_| ())
+        .map_err(|e| DbError::SomethingWentWrong(e.to_string()))
     }
 }
