@@ -10,8 +10,7 @@ pub struct PrizeDrawRepository {
 }
 
 #[async_trait]
-pub trait PrizeDrawRepositoryTrait {
-    fn new(db_conn: &Arc<Database>) -> Self;
+pub trait PrizeDrawRepositoryTrait: Send + Sync {
     async fn create_draw_in_tx(
         &self,
         tx: &mut PgConnection,
@@ -27,14 +26,16 @@ pub trait PrizeDrawRepositoryTrait {
     async fn find_by_prize_id(&self, prize_id: i32) -> Result<Vec<PrizeDraw>, Error>;
 }
 
-#[async_trait]
-impl PrizeDrawRepositoryTrait for PrizeDrawRepository {
-    fn new(db_conn: &Arc<Database>) -> Self {
+impl PrizeDrawRepository {
+    pub fn new(db_conn: Arc<Database>) -> Self {
         Self {
-            db_conn: Arc::clone(db_conn),
+            db_conn
         }
     }
+}
 
+#[async_trait]
+impl PrizeDrawRepositoryTrait for PrizeDrawRepository {
     async fn create_draw_in_tx(
         &self,
         tx: &mut PgConnection,

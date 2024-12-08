@@ -12,8 +12,7 @@ pub struct UserTicketRepository {
 }
 
 #[async_trait]
-pub trait UserTicketRepositoryTrait {
-    fn new(db_conn: &Arc<Database>) -> Self;
+pub trait UserTicketRepositoryTrait: Send + Sync {
     async fn get_ticket_ranking(&self) -> Result<Vec<UserTicketCount>, Error>;
     async fn create_ticket_in_tx(
         &self,
@@ -32,14 +31,16 @@ pub trait UserTicketRepositoryTrait {
     ) -> Result<(), Error>;
 }
 
-#[async_trait]
-impl UserTicketRepositoryTrait for UserTicketRepository {
-    fn new(db_conn: &Arc<Database>) -> Self {
+impl UserTicketRepository {
+    pub fn new(db_conn: Arc<Database>) -> Self {
         Self {
-            db_conn: Arc::clone(db_conn),
+            db_conn
         }
     }
+}
 
+#[async_trait]
+impl UserTicketRepositoryTrait for UserTicketRepository {
     async fn get_ticket_ranking(&self) -> Result<Vec<UserTicketCount>, Error> {
         let result = sqlx::query_as!(
             UserTicketCount,

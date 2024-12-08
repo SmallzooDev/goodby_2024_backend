@@ -8,14 +8,12 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct PrizeService {
     prize_repo: PrizeRepository,
-    db_conn: Arc<Database>,
 }
 
 impl PrizeService {
-    pub fn new(db_conn: &Arc<Database>) -> Self {
+    pub fn new(prize_repo: PrizeRepository) -> Self {
         Self {
-            prize_repo: PrizeRepository::new(db_conn),
-            db_conn: Arc::clone(db_conn),
+            prize_repo
         }
     }
 

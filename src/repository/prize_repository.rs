@@ -10,20 +10,22 @@ pub struct PrizeRepository {
 }
 
 #[async_trait]
-pub trait PrizeRepositoryTrait {
-    fn new(db_conn: &Arc<Database>) -> Self;
+pub trait PrizeRepositoryTrait: Send + Sync {
     async fn create(&self, name: String, stock: i32) -> Result<Prize, Error>;
     async fn find_all(&self) -> Result<Vec<Prize>, Error>;
+    async fn find_by_id_in_tx(&self, tx: &mut sqlx::PgConnection, id: i32) -> Result<Prize, Error>;
+}
+
+impl PrizeRepository {
+    pub fn new(db_conn: Arc<Database>) -> Self {
+        Self {
+            db_conn
+        }
+    }
 }
 
 #[async_trait]
 impl PrizeRepositoryTrait for PrizeRepository {
-    fn new(db_conn: &Arc<Database>) -> Self {
-        Self {
-            db_conn: Arc::clone(db_conn),
-        }
-    }
-
     async fn create(&self, name: String, stock: i32) -> Result<Prize, Error> {
         sqlx::query_as!(
             Prize,
@@ -45,6 +47,16 @@ impl PrizeRepositoryTrait for PrizeRepository {
             "SELECT id, name, stock FROM prizes ORDER BY id"
         )
         .fetch_all(self.db_conn.get_pool())
+        .await
+    }
+
+    async fn find_by_id_in_tx(&self, tx: &mut sqlx::PgConnection, id: i32) -> Result<Prize, Error> {
+        sqlx::query_as!(
+            Prize,
+            "SELECT id, name, stock FROM prizes WHERE id = $1",
+            id
+        )
+        .fetch_one(&mut *tx)
         .await
     }
 } 

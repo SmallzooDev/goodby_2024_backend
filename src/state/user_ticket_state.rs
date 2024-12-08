@@ -1,5 +1,5 @@
 use crate::config::database::Database;
-use crate::repository::user_ticket_repository::{UserTicketRepository, UserTicketRepositoryTrait};
+use crate::repository::user_ticket_repository::UserTicketRepository;
 use crate::service::user_ticket_service::UserTicketService;
 use std::sync::Arc;
 
@@ -12,9 +12,10 @@ pub struct UserTicketState {
 
 impl UserTicketState {
     pub fn new(db_conn: &Arc<Database>) -> Self {
+        let user_ticket_repo = UserTicketRepository::new(Arc::clone(db_conn));
         Self {
-            user_ticket_service: UserTicketService::new(db_conn),
-            user_ticket_repo: UserTicketRepository::new(db_conn),
+            user_ticket_service: UserTicketService::new(user_ticket_repo.clone()),
+            user_ticket_repo,
         }
     }
 }

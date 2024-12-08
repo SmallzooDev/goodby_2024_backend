@@ -1,12 +1,10 @@
-use crate::config::database::{Database, DatabaseTrait};
+use crate::config::database::DatabaseTrait;
 use crate::dto::prize_draw_dto::{DrawPrizeRequestDto, PrizeDrawDto};
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::repository::prize_draw_repository::{PrizeDrawRepository, PrizeDrawRepositoryTrait};
 use crate::repository::prize_repository::{PrizeRepository, PrizeRepositoryTrait};
 use crate::repository::user_ticket_repository::{UserTicketRepository, UserTicketRepositoryTrait};
-use crate::entity::prize::Prize;
-use std::sync::Arc;
 use std::iter::IntoIterator;
 
 #[derive(Clone)]
@@ -14,22 +12,25 @@ pub struct PrizeDrawService {
     prize_draw_repo: PrizeDrawRepository,
     prize_repo: PrizeRepository,
     user_ticket_repo: UserTicketRepository,
-    db_conn: Arc<Database>,
 }
 
 impl PrizeDrawService {
-    pub fn new(db_conn: &Arc<Database>) -> Self {
+    pub fn new(
+        prize_draw_repo: PrizeDrawRepository,
+        prize_repo: PrizeRepository,
+        user_ticket_repo: UserTicketRepository,
+    ) -> Self {
         Self {
-            prize_draw_repo: PrizeDrawRepository::new(db_conn),
-            prize_repo: PrizeRepository::new(db_conn),
-            user_ticket_repo: UserTicketRepository::new(db_conn),
-            db_conn: Arc::clone(db_conn),
+            prize_draw_repo,
+            prize_repo,
+            user_ticket_repo,
         }
     }
 
     pub async fn draw_prize(&self, payload: DrawPrizeRequestDto) -> Result<Vec<PrizeDrawDto>, ApiError> {
         // 트랜잭션 시작
         let mut tx = self
+            .prize_draw_repo
             .db_conn
             .get_pool()
             .begin()
@@ -37,14 +38,11 @@ impl PrizeDrawService {
             .map_err(|e| ApiError::Db(DbError::SomethingWentWrong(e.to_string())))?;
 
         // 상품 정보 조회
-        let prize = sqlx::query_as!(
-            Prize,
-            "SELECT id, name, stock FROM prizes WHERE id = $1",
-            payload.prize_id
-        )
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(|e| ApiError::Db(DbError::SomethingWentWrong(e.to_string())))?;
+        let prize = self
+            .prize_repo
+            .find_by_id_in_tx(&mut tx, payload.prize_id)
+            .await
+            .map_err(|e| ApiError::Db(DbError::SomethingWentWrong(e.to_string())))?;
 
         // 당첨 가능한 티켓 목록 조회
         let available_tickets = self
