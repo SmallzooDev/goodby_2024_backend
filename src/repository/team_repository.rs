@@ -6,25 +6,26 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct TeamRepository {
-    pub(crate) db_conn: Arc<Database>,
+    db_conn: Arc<Database>,
 }
 
 #[async_trait]
-pub trait TeamRepositoryTrait {
-    fn new(db_conn: &Arc<Database>) -> Self;
+pub trait TeamRepositoryTrait: Send + Sync {
     async fn create_team(&self, team_name: String) -> Result<i32, Error>;
     async fn assign_team(&self, user_ids: Vec<i32>, team_id: i32) -> Result<(), Error>;
     async fn get_team_users(&self) -> Result<Vec<TeamUserDto>, Error>;
 }
 
-#[async_trait]
-impl TeamRepositoryTrait for TeamRepository {
-    fn new(db_conn: &Arc<Database>) -> Self {
+impl TeamRepository {
+    pub fn new(db_conn: Arc<Database>) -> Self {
         Self {
-            db_conn: Arc::clone(db_conn),
+            db_conn
         }
     }
+}
 
+#[async_trait]
+impl TeamRepositoryTrait for TeamRepository {
     async fn create_team(&self, team_name: String) -> Result<i32, Error> {
         let result = sqlx::query_scalar!(
             r#"

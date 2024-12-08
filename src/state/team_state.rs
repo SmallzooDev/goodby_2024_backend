@@ -1,5 +1,5 @@
 use crate::config::database::Database;
-use crate::repository::team_repository::{TeamRepository, TeamRepositoryTrait};
+use crate::repository::team_repository::TeamRepository;
 use crate::service::team_service::TeamService;
 use std::sync::Arc;
 
@@ -12,9 +12,10 @@ pub struct TeamState {
 
 impl TeamState {
     pub fn new(db_conn: &Arc<Database>) -> Self {
+        let team_repo = TeamRepository::new(Arc::clone(db_conn));
         Self {
-            team_service: TeamService::new(db_conn),
-            team_repo: TeamRepository::new(db_conn),
+            team_service: TeamService::new(team_repo.clone()),
+            team_repo,
         }
     }
 } 

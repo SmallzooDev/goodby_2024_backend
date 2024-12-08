@@ -1,21 +1,17 @@
-use crate::config::database::Database;
 use crate::dto::team_request_dto::{TeamAssignRequestDto, TeamCreateRequestDto, TeamUserDto};
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::repository::team_repository::{TeamRepository, TeamRepositoryTrait};
-use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct TeamService {
     team_repo: TeamRepository,
-    db_conn: Arc<Database>,
 }
 
 impl TeamService {
-    pub fn new(db_conn: &Arc<Database>) -> Self {
+    pub fn new(team_repo: TeamRepository) -> Self {
         Self {
-            team_repo: TeamRepository::new(db_conn),
-            db_conn: Arc::clone(db_conn),
+            team_repo
         }
     }
 
